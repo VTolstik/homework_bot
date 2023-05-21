@@ -169,7 +169,7 @@ if __name__ == '__main__':
         level=logging.DEBUG,
         handlers=[
             logging.FileHandler(
-                filename=__file__ + '.log', mode='w', encoding='UTF-8'),
+                filename=__file__ + '.log', mode='w'),
             logging.StreamHandler(stream=sys.stdout)
         ],
         format='%(asctime)s, %(levelname)s, %(funcName)s, '
