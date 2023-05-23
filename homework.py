@@ -5,6 +5,7 @@ import time
 
 import requests
 import telegram
+from http import HTTPStatus
 from dotenv import load_dotenv
 
 from exceptions import ErrorApiAnswer, ErrorKeyApiAnswer
@@ -13,9 +14,9 @@ from exceptions import ErrorApiAnswer, ErrorKeyApiAnswer
 load_dotenv()
 
 
-PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+PRACTICUM_TOKEN: str = os.getenv('PRACTICUM_TOKEN')
+TELEGRAM_TOKEN: str = os.getenv('TELEGRAM_TOKEN')
+TELEGRAM_CHAT_ID: int = os.getenv('TELEGRAM_CHAT_ID')
 
 RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
@@ -39,13 +40,8 @@ TOKENS = [
 def check_tokens():
     """Проверка настройки токенов."""
     logging.debug('Проверка наличия всех токенов.')
-    none_tokens = [token_name for token_name
-                   in TOKENS if globals()[token_name] is None]
-    if none_tokens:
-        logging.critical(
-            f'Отсутствует токен/ы {none_tokens}. Бот не сможет работать'
-        )
-        raise ValueError(f'Список недоступных токенов: {none_tokens}.')
+    env_list = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    return all(env_list)
 
 
 def send_message(bot, message):
@@ -67,6 +63,9 @@ def send_message(bot, message):
 def get_api_answer(timestamp):
     """Запрос к API."""
     try:
+        logging.info(
+            f'Начало запроса к API с параметром {timestamp}'
+        )
         response = requests.get(
             url=ENDPOINT, headers=HEADERS, params={'from_date': timestamp}
         )
@@ -74,8 +73,8 @@ def get_api_answer(timestamp):
         raise ConnectionError(
             f'Ошибка запроса к API:{error}. '
             f'Параметры:{ENDPOINT} {HEADERS} {timestamp}'
-        )
-    if response.status_code != 200:
+        ) from error
+    if response.status_code != HTTPStatus.OK:
         raise ErrorApiAnswer(
             f'Не получен ответ API. Код ответа: {response.status_code}'
         )
@@ -130,7 +129,15 @@ def parse_status(homework):
 
 def main():
     """Работа бота."""
-    check_tokens()
+    if not check_tokens():
+        none_tokens = []
+        for token_name in TOKENS:
+            if [token_name] is None:
+                none_tokens += [token_name]
+        logging.critical(
+            f'Отсутствует токен/ы {none_tokens}. Бот не сможет работать'
+        )
+        sys.exit(f'Список недоступных токенов: {none_tokens}.')
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
     last_message = ''
@@ -168,8 +175,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         level=logging.DEBUG,
         handlers=[
-            logging.FileHandler(
-                filename=__file__ + '.log', mode='w'),
+            logging.FileHandler(filename=__file__ + '.log', mode='w'),
             logging.StreamHandler(stream=sys.stdout)
         ],
         format='%(asctime)s, %(levelname)s, %(funcName)s, '
