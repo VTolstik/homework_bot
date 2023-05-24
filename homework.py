@@ -30,26 +30,20 @@ HOMEWORK_VERDICTS = {
 }
 
 
-TOKENS = {
-    'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
-    'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
-    'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
-}
-# TOKENS = [
-#     'PRACTICUM_TOKEN',
-#     'TELEGRAM_TOKEN',
-#     'TELEGRAM_CHAT_ID',
-# ]
+TOKENS = [
+    'PRACTICUM_TOKEN',
+    'TELEGRAM_TOKEN',
+    'TELEGRAM_CHAT_ID',
+]
 
 
 def check_tokens():
-    """Проверка токенов. Возвращает список пустых токенов."""
+    """Проверка наличия всех токенов. Возвращает список пустых токенов."""
     logging.debug('Проверка наличия всех токенов.')
     none_tokens = []
-    if not all(TOKENS.values()):
-        for token_name in TOKENS:
-            if TOKENS[token_name] is None:
-                none_tokens.append(token_name)
+    for token_name in TOKENS:
+        if globals()[token_name] is None:
+            none_tokens.append(token_name)
     return none_tokens
 
 
