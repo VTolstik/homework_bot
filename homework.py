@@ -30,24 +30,25 @@ HOMEWORK_VERDICTS = {
 }
 
 
-TOKENS = [
-    'PRACTICUM_TOKEN',
-    'TELEGRAM_TOKEN',
-    'TELEGRAM_CHAT_ID',
-]
+TOKENS = {
+    'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
+    'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
+    'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID,
+}
 
 
-def check_tokens():
+def check_tokens(TOKENS: dict):
     """Проверка наличия всех токенов. Возвращает список пустых токенов."""
     logging.debug('Проверка наличия всех токенов.')
     none_tokens = []
     for token_name in TOKENS:
         if globals()[token_name] is None:
             none_tokens.append(token_name)
-    return none_tokens
+    return not none_tokens
+    # return all(TOKENS.values())
 
 
-def send_message(bot, message):
+def send_message(bot: telegram.Bot, message: int):
     """Отправка сообщения в чат."""
     try:
         logging.info(
@@ -63,7 +64,7 @@ def send_message(bot, message):
         )
 
 
-def get_api_answer(timestamp):
+def get_api_answer(timestamp: int):
     """Запрос к API."""
     try:
         logging.info(
@@ -93,7 +94,7 @@ def get_api_answer(timestamp):
     return response_json
 
 
-def check_response(response):
+def check_response(response: dict):
     """Проверяем ответа API."""
     logging.debug('Проверки ответа API.')
     if not isinstance(response, dict):
@@ -111,7 +112,7 @@ def check_response(response):
     return homeworks
 
 
-def parse_status(homework):
+def parse_status(homework: list):
     """Получение информации о статусе работы."""
     if 'homework_name' not in homework:
         raise KeyError('Отсутствует ключ homework_name.')
@@ -132,12 +133,10 @@ def parse_status(homework):
 
 def main():
     """Работа бота."""
-    none_tokens = check_tokens()
-    if none_tokens:
-        logging.critical(
-            f'Отсутствует токен/ы {none_tokens}. Бот не сможет работать'
-        )
-        sys.exit(f'Список недоступных токенов: {none_tokens}.')
+    if not check_tokens(TOKENS):
+        logging.critical('Отсутствие необходимых токенов. Бот не сработает')
+        sys.exit('Неполный список токенов в настройках. Необходимы '
+                 'PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID')
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
     last_message = ''
