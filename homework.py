@@ -30,22 +30,11 @@ HOMEWORK_VERDICTS = {
 }
 
 
-TOKENS = {
-    'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
-    'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
-    'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID,
-}
-
-
-def check_tokens(TOKENS: dict):
+def check_tokens():
     """Проверка наличия всех токенов. Возвращает список пустых токенов."""
     logging.debug('Проверка наличия всех токенов.')
-    none_tokens = []
-    for token_name in TOKENS:
-        if globals()[token_name] is None:
-            none_tokens.append(token_name)
-    return not none_tokens
-    # return all(TOKENS.values())
+    TOKENS = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    return all(TOKENS)
 
 
 def send_message(bot: telegram.Bot, message: int):
@@ -133,7 +122,7 @@ def parse_status(homework: list):
 
 def main():
     """Работа бота."""
-    if not check_tokens(TOKENS):
+    if not check_tokens():
         logging.critical('Отсутствие необходимых токенов. Бот не сработает')
         sys.exit('Неполный список токенов в настройках. Необходимы '
                  'PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID')
